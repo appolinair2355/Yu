@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 
-# Initialize bot
+# Load configuration
 config = Config()
+
+# Initialize bot
 bot = TelegramBot(config.BOT_TOKEN)
 
 @app.route('/webhook', methods=['POST'])
@@ -35,7 +37,7 @@ def webhook():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint for render.com"""
+    """Health check endpoint for Render.com"""
     return {'status': 'healthy', 'service': 'telegram-bot'}, 200
 
 @app.route('/', methods=['GET'])
@@ -43,27 +45,18 @@ def home():
     """Root endpoint"""
     return {'message': 'Telegram Bot is running', 'status': 'active'}, 200
 
-def setup_webhook():
-    """Set up webhook on startup"""
-    try:
-        webhook_url = os.getenv('WEBHOOK_URL')
-        if webhook_url:
-            success = bot.set_webhook(f"{webhook_url}/webhook")
-            if success:
-                logger.info(f"Webhook set successfully to {webhook_url}/webhook")
-            else:
-                logger.error("Failed to set webhook")
-        else:
-            logger.warning("WEBHOOK_URL not provided, webhook not set")
-    except Exception as e:
-        logger.error(f"Error setting up webhook: {e}")
-
 if __name__ == '__main__':
-    # Set up webhook on startup
-    setup_webhook()
+    # --- Webhook setup forcé ---
+    if config.WEBHOOK_URL:
+        success = bot.set_webhook(f"{config.WEBHOOK_URL}/webhook")
+        if success:
+            logger.info(f"✅ Webhook set to {config.WEBHOOK_URL}/webhook")
+        else:
+            logger.error("❌ Failed to set webhook")
+    else:
+        logger.warning("⚠️ WEBHOOK_URL not provided. Skipping webhook setup.")
 
-    # Get port from environment (render.com provides this)  
-    port = int(os.getenv('PORT', 10000))  
-
-    # Run the Flask app  
-    app.run(host='0.0.0.0', port=port, debug=False)
+    # --- Run the Flask app ---
+    port = config.PORT
+    logger.info(f"🚀 Starting Flask app on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=config.DEBUG)
