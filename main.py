@@ -61,9 +61,9 @@ def setup_webhook():
 if __name__ == '__main__':
     # Set up webhook on startup
     setup_webhook()
-    
-    # Get port from environment (render.com provides this)
-    port = int(os.getenv('PORT', 10000))
-    
-    # Run the Flask app
+
+    # Get port from environment (render.com provides this)  
+    port = int(os.getenv('PORT', 10000))  
+
+    # Run the Flask app  
     app.run(host='0.0.0.0', port=port, debug=False)
